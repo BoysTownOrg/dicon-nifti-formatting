@@ -1,4 +1,4 @@
-use nifti::{IntoNdArray, NiftiObject};
+use nifti::{IntoNdArray, NiftiObject, NiftiVolume};
 use std::io::Write;
 
 fn main() -> Result<(), std::io::Error> {
@@ -8,9 +8,13 @@ fn main() -> Result<(), std::io::Error> {
         .expect("Should be able to read nifti file.");
     let slices = nifti
         .volume()
-        .into_ndarray::<f32>()
+        .into_ndarray::<f64>()
         .expect("Should be able to convert volume into ndarray.");
-    println!("{:?}", nifti.header());
+    println!("header: {:?}", nifti.header());
+    println!("slice order: {:?}", nifti.header().slice_order());
+    println!("extensions: {:?}", nifti.extensions());
+    println!("dimensions: {:?}", nifti.volume().dim());
+    println!("data type: {:?}", nifti.volume().data_type());
     let mut file = std::io::BufWriter::new(std::fs::File::create("out.dat")?);
     writeln!(
         file,
@@ -25,11 +29,11 @@ X: {x_min:.6} 70.000000 {x_dim}
 Y: {y_min:.6} 71.629997 {y_dim}
 Z: {z_min:.6} 77.379997 {z_dim}",
         x_min = nifti.header().srow_x[3],
-        x_dim = nifti.header().dim[1],
+        x_dim = nifti.volume().dim()[0],
         y_min = nifti.header().srow_y[3],
-        y_dim = nifti.header().dim[2],
+        y_dim = nifti.volume().dim()[1],
         z_min = nifti.header().srow_z[3],
-        z_dim = nifti.header().dim[3],
+        z_dim = nifti.volume().dim()[2],
     )?;
     write!(file,
 "=============================================================================================="
