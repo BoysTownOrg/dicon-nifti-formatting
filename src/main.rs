@@ -36,19 +36,15 @@ fn convert(
         .volume()
         .into_ndarray::<f64>()
         .map_err(|err| err.to_string())?;
-    write(
-        nifti_object,
-        slices,
-        input_file_path,
-        options_file_path,
-        output_file_path,
-    )
-    .map_err(|err| err.to_string())?;
+    write(nifti_object, slices, options_file_path, output_file_path)
+        .map_err(|err| err.to_string())?;
     Ok(())
 }
 
 #[derive(Deserialize)]
 struct Options {
+    #[serde(rename(deserialize = "data file"))]
+    data_file: String,
     #[serde(rename(deserialize = "correct"))]
     correct: i32,
     #[serde(rename(deserialize = "ms"))]
@@ -62,7 +58,6 @@ struct Options {
 fn write(
     nifti_object: nifti::object::GenericNiftiObject<nifti::InMemNiftiVolume>,
     slices: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<ndarray::IxDynImpl>>,
-    input_file_path: &str,
     options_file_path: &str,
     output_file_path: &str,
 ) -> Result<(), std::io::Error> {
@@ -73,7 +68,7 @@ fn write(
         output_file_writer,
         "BESA_SA_IMAGE:2.0
 
-Data file:          {input_file_path}
+Data file:          {data_file}
 Condition:          Correct  Notch filter: 60 Hz
 Correct {correct} : {ms} ms {lower_hz:.1}-{upper_hz:.1} Hz MSBF (TF) q%
 
@@ -81,6 +76,7 @@ Grid dimensions ([min] [max] [nr of locations]):
 X: {x_min:.6} 70.000000 {x_dim}
 Y: {y_min:.6} 71.629997 {y_dim}
 Z: {z_min:.6} 77.379997 {z_dim}",
+        data_file = options.data_file,
         correct = options.correct,
         ms = options.ms,
         lower_hz = options.lower_hz,
