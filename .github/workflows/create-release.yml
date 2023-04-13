@@ -18,7 +18,8 @@ jobs:
         run: cargo build --release
       - name: create GitHub release
         run: |
-          7z.exe a dicon-nifti-formatting-${{ steps.get_version.outputs.tag }}.zip target\release\convert-nifti-to-dat.exe example-options.json
+          mv target\release\convert-nifti-to-dat.exe .
+          7z.exe a dicon-nifti-formatting-${{ steps.get_version.outputs.tag }}.zip convert-nifti-to-dat.exe example-options.json
           gh release create v${{ steps.get_version.outputs.tag }} dicon-nifti-formatting-${{ steps.get_version.outputs.tag }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
